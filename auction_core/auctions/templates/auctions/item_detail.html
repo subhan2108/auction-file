@@ -1,0 +1,16 @@
+{% load humanize %}
+<h2>{{ object.name }}</h2>
+<p>{{ object.description }}</p>
+<p>Price: ₹{{ object.starting_price|floatformat:2|intcomma }}</p>
+<p>Status: {{ object.status }}</p>
+
+{% if object.photo %}
+    <img src="{{ object.photo.url }}" width="200">
+{% endif %}
+
+{% if object.seller == user %}
+    <a href="{% url 'item-update' object.pk %}">Edit</a>
+    <a href="{% url 'item-delete' object.pk %}">Delete</a>
+{% endif %}
+
+<a href="{% url 'item_list' %}">Back to list</a>

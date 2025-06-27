@@ -1,0 +1,11 @@
+{% load humanize %}
+<h2>All Auction Items</h2>
+<ul>
+    {% for item in items %}
+        <li>
+            <a href="{% url 'item-detail' item.pk %}">{{ item.name }}</a>
+            — ₹{{ item.starting_price|floatformat:2|intcomma }}
+        </li>
+    {% endfor %}
+</ul>
+<a href="{% url 'item-create' %}">+ Add New Product</a>

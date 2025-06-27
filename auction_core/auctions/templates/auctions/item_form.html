@@ -1,0 +1,9 @@
+<h2>{% if object %}Edit{% else %}Create{% endif %} Product</h2>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">{% if object %}Update{% else %}Create{% endif %}</button>
+</form>
+
+<a href="{% url 'item_list' %}">Cancel</a>
