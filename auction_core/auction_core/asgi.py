@@ -1,16 +1,46 @@
-"""
-ASGI config for auction_core project.
-
-It exposes the ASGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
-"""
-
 import os
+import django
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
 
-from django.core.asgi import get_asgi_application
-
+# ✅ Set the settings module before importing anything Django-related
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'auction_core.settings')
 
-application = get_asgi_application()
+# ✅ Setup Django
+django.setup()  # 👈 THIS LINE IS IMPORTANT to load apps properly
+
+# ✅ Import AFTER setup
+from django.core.asgi import get_asgi_application
+import auctions.routing
+
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),
+    "websocket": AuthMiddlewareStack(
+        URLRouter(
+            auctions.routing.websocket_urlpatterns
+        )
+    ),
+})
+import os
+import django
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+
+# ✅ Set the settings module before importing anything Django-related
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'auction_core.settings')
+
+# ✅ Setup Django
+django.setup()  # 👈 THIS LINE IS IMPORTANT to load apps properly
+
+# ✅ Import AFTER setup
+from django.core.asgi import get_asgi_application
+import auctions.routing
+
+application = ProtocolTypeRouter({
+    "http": get_asgi_application(),
+    "websocket": AuthMiddlewareStack(
+        URLRouter(
+            auctions.routing.websocket_urlpatterns
+        )
+    ),
+})

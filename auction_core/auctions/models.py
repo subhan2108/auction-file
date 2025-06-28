@@ -27,3 +27,22 @@ class AuctionItem(models.Model):
     
     def __str__(self):
         return f"{self.name} - {self.status}"
+    
+    
+class Auction(models.Model):
+    STATUS_CHOICES = [
+        ('active','Active'),
+        ('closed','Closed'),
+    ]
+    
+    product = models.OneToOneField('AuctionItem', on_delete=models.CASCADE, related_name='auction')
+    current_bid = models.DecimalField( max_digits=10, decimal_places=2, default=0.00)
+    bidder = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='bids')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    
+    def __str__(self):
+        return f"Auction for {self.product.name} -  ₹{self.current_bid}"
+    
+

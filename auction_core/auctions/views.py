@@ -1,25 +1,24 @@
 from django.shortcuts import render, redirect
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
-from .models import AuctionItem
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.contrib.auth import login, logout, authenticate
-from django.http import HttpResponse
+from django.contrib.auth import login, logout
 from django.contrib.auth.forms import AuthenticationForm
-from .forms import CustomUserCreationForm
 from django.contrib.auth.decorators import login_required
-# Create your views here.
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.urls import reverse_lazy
+
+from .forms import CustomUserCreationForm
+from .models import AuctionItem
 
 def signup_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
-            return redirect('home')
+            login(request, user)  # log in after signup
+            return redirect('item_list')
     else:
         form = CustomUserCreationForm()
-    return render(request, 'auctions/signup.html', {'form':form})
+    return render(request, 'auctions/signup.html', {'form': form})
 
 def login_view(request):
     if request.method == 'POST':
@@ -27,7 +26,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect('item-list')
+            return redirect('item_list')
     else:
         form = AuthenticationForm()
     return render(request, 'auctions/login.html', {'form':form})

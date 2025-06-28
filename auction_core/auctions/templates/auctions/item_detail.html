@@ -14,3 +14,35 @@
 {% endif %}
 
 <a href="{% url 'item_list' %}">Back to list</a>
+
+
+
+<script>
+    const itemId = "{{ object.id }}";
+    const socket = new WebSocket(`ws://${window.location.host}/ws/auction/${itemId}/`);
+
+    socket.onopen = () => console.log("✅ WebSocket connected");
+    socket.onerror = (e) => console.error("❌ WebSocket error:", e);
+    socket.onmessage = function (e) {
+        const data = JSON.parse(e.data);
+        if (data.bid) {
+            document.getElementById("current-bid").innerText = `₹${data.bid} (by ${data.user})`;
+        } else if (data.error) {
+            alert(data.error);
+        }
+    };
+
+    function placeBid() {
+        const bidInput = parseFloat(document.getElementById("bid-input").value);
+        if (!isNaN(bidInput) && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({ bid: bidInput }));
+        } else {
+     /*      alert("WebSocket not connected or invalid bid.");*/
+             alert("websocket is gone");
+        }
+    }
+</script>
+
+<p id="current-bid">₹{{ object.auction.current_bid|floatformat:2|intcomma }}</p>
+<input type="number" id="bid-input" step="0.01">
+<button onclick="placeBid()">Place Bid</button>
