@@ -46,3 +46,5 @@
 <p id="current-bid">₹{{ object.auction.current_bid|floatformat:2|intcomma }}</p>
 <input type="number" id="bid-input" step="0.01">
 <button onclick="placeBid()">Place Bid</button>
+
+<p>Auction Ends At: {{ object.auction.end.time }}</p>
