@@ -31,27 +31,24 @@
     socket.onerror = (e) => console.error("❌ WebSocket error:", e);
 
     socket.onmessage = function (e) {
-        const data = JSON.parse(e.data);
+    const data = JSON.parse(e.data);
 
-        if (data.bid) {
-            document.getElementById("current-bid").innerText = `₹${data.bid} (by ${data.user})`;
-        }
+    if (data.bid) {
+        document.getElementById("current-bid").innerText = `₹${data.bid} (by ${data.user})`;
+    } else if (data.notification) {
+        alert(data.notification); // 🔔 Alert when outbid
+    } else if (data.error) {
+        alert(data.error);
+    } else if (data.status === 'closed') {
+        document.getElementById("auction-status").innerText = "closed";
+        document.getElementById("countdown-timer").innerText = "Auction ended";
+        document.getElementById("bid-input").disabled = true;
+        document.getElementById("place-bid-btn").disabled = true;
+    } else if (data.status === 'ongoing') {
+        document.getElementById("auction-status").innerText = "ongoing";
+    }
+};
 
-        if (data.status === 'closed') {
-            document.getElementById("auction-status").innerText = "closed";
-            document.getElementById("countdown-timer").innerText = "Auction ended";
-            document.getElementById("bid-input").disabled = true;
-            document.getElementById("place-bid-btn").disabled = true;
-        }
-
-        if (data.status === 'ongoing') {
-            document.getElementById("auction-status").innerText = "ongoing";
-        }
-
-        if (data.error) {
-            alert(data.error);
-        }
-    };
 
     function placeBid() {
         const bidInput = parseFloat(document.getElementById("bid-input").value);
