@@ -42,7 +42,7 @@ class Auction(models.Model):
     bidder = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='bids')
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
     updated_at = models.DateTimeField(auto_now=True)
-    end_time = models.DateTimeField(default=timezone.now() + timedelta(days=1))
+    end_time = models.DateTimeField(default=timezone.now() + timedelta(days=1))# ends in 1 hour by default
     
     
     def __str__(self):

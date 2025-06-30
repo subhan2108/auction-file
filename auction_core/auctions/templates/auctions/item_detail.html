@@ -2,7 +2,7 @@
 <h2>{{ object.name }}</h2>
 <p>{{ object.description }}</p>
 <p>Price: ₹{{ object.starting_price|floatformat:2|intcomma }}</p>
-<p>Status: {{ object.status }}</p>
+<p>Status: <span id="auction-status">{{ object.auction.status }}</span></p>
 
 {% if object.photo %}
     <img src="{{ object.photo.url }}" width="200">
@@ -15,7 +15,13 @@
 
 <a href="{% url 'item_list' %}">Back to list</a>
 
+<p id="current-bid">₹{{ object.auction.current_bid|floatformat:2|intcomma }}</p>
 
+<input type="number" id="bid-input" step="0.01" {% if object.auction.status == 'closed' %}disabled{% endif %}>
+<button id="place-bid-btn" onclick="placeBid()" {% if object.auction.status == 'closed' %}disabled{% endif %}>Place Bid</button>
+
+<p>Auction Ends At: {{ object.auction.end_time }}</p>
+<p id="countdown-timer"></p>
 
 <script>
     const itemId = "{{ object.id }}";
@@ -23,11 +29,26 @@
 
     socket.onopen = () => console.log("✅ WebSocket connected");
     socket.onerror = (e) => console.error("❌ WebSocket error:", e);
+
     socket.onmessage = function (e) {
         const data = JSON.parse(e.data);
+
         if (data.bid) {
             document.getElementById("current-bid").innerText = `₹${data.bid} (by ${data.user})`;
-        } else if (data.error) {
+        }
+
+        if (data.status === 'closed') {
+            document.getElementById("auction-status").innerText = "closed";
+            document.getElementById("countdown-timer").innerText = "Auction ended";
+            document.getElementById("bid-input").disabled = true;
+            document.getElementById("place-bid-btn").disabled = true;
+        }
+
+        if (data.status === 'ongoing') {
+            document.getElementById("auction-status").innerText = "ongoing";
+        }
+
+        if (data.error) {
             alert(data.error);
         }
     };
@@ -37,14 +58,42 @@
         if (!isNaN(bidInput) && socket.readyState === WebSocket.OPEN) {
             socket.send(JSON.stringify({ bid: bidInput }));
         } else {
-     /*      alert("WebSocket not connected or invalid bid.");*/
-             alert("websocket is gone");
+            alert("WebSocket not connected or invalid bid.");
         }
     }
+
+    // Countdown Timer
+    const endTime = new Date("{{ object.auction.end_time|date:'Y-m-d H:i:s' }}").getTime();
+
+    function updateCountdown() {
+        const now = new Date().getTime();
+        const distance = endTime - now;
+
+        if (distance <= 0) {
+            document.getElementById("countdown-timer").innerText = "Auction ended";
+            document.getElementById("auction-status").innerText = "closed";
+            document.getElementById("bid-input").disabled = true;
+            document.getElementById("place-bid-btn").disabled = true;
+
+            // Notify backend (optional, can trigger status change via WebSocket)
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({ status: "closed" }));
+            }
+
+            clearInterval(timerInterval);
+            return;
+        }
+
+        document.getElementById("auction-status").innerText = "ongoing";
+
+        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+        document.getElementById("countdown-timer").innerText =
+            `Time left: ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    updateCountdown();
+    const timerInterval = setInterval(updateCountdown, 1000);
 </script>
-
-<p id="current-bid">₹{{ object.auction.current_bid|floatformat:2|intcomma }}</p>
-<input type="number" id="bid-input" step="0.01">
-<button onclick="placeBid()">Place Bid</button>
-
-<p>Auction Ends At: {{ object.auction.end.time }}</p>
